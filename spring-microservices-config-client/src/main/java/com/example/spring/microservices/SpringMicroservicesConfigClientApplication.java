@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RefreshScope
 public class SpringMicroservicesConfigClientApplication {
-
+	
 	@Value("${message}")
 	private String message;
-	
+
 	@RequestMapping("/message")
 	public String message() {
 		return this.message;
