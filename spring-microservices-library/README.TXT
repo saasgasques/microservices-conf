@@ -4,6 +4,8 @@ https://www.safaribooksonline.com/library/view/building-microservices-with/97814
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296228.html
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296231.html
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296232.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296236.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296237.html
 https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files/Chapter%203/Microservice%20Demonstration/Library%20Start/src/main/java/com/oreilly/cloud
 
 ###########
@@ -149,6 +151,144 @@ Archive for required library: '/home/ester/.m2/repository/io/reactivex/rxjava/1.
 in project 'spring-microservice-eureka-server' cannot be read or is not a valid ZIP file	
 spring-microservice-eureka-server		Build path	Build Path Problem
 
+########################
+# EUREKA SERVER REPLICA
+
+Edit /etc/hosts and add
+127.0.0.1 peer1
+127.0.0.1 peer2
+
+Create application-peer1.properties, application-peer2.properties and remove application.properties
+
+#application-peer1.properties
+server.port=8761
+eureka.client.register-with-eureka=false 
+eureka.client.fetch-registry=false 
+eureka.instance.hostname=peer1
+eureka.client.serviceUrl.defaultZone=http://peer2:8762/eureka
+
+#application-peer2.properties
+server.port=8762
+eureka.client.register-with-eureka=false 
+eureka.client.fetch-registry=false 
+eureka.instance.hostname=peer2
+eureka.client.serviceUrl.defaultZone=http://peer1:8761/eureka
+
+Run de app "SpringMicroserviceEurekaServerApplication" and add VM Arguments -Dspring.profiles.active=peer1
+duplicate the profiles and modify -Dspring.profiles.active=peer2
+
+Navigate to localhost:8761 and localhost:8762
+
+################
+# EUREKA CLIENT
+spring-microservices-eureka-client
+Eureka Discovery dependency  1.5.13.RELEASE
+
+Add @EnableEurekaClient annotation to class SpringMicroservicesEurekaClientApplication
+Add app name to the application.properties
+spring.application.name=MyClient
+
+Navigate to localhost:8761
+
+##################
+# EUREKA CLIENT 2
+Create a second client spring-microservices-eureka-client2
+
+Add @RestController @EnableEurekaClient annotation to class SpringMicroservicesEurekaClient2Application
+Add a rest mapping to class SpringMicroservicesEurekaClient2Application
+
+@Autowired
+private EurekaClient client;
+
+@RequestMapping("/serviceinfo")
+public String serviceInfo() {
+	String virtualHostname = "MyClient"; // App client 1 name
+	Boolean secure = false; // Secure access
+	InstanceInfo instance = client.getNextServerFromEureka(virtualHostname, secure);
+	
+	return instance.getHomePageUrl();
+}
+
+Set port and app name in client2 application.properties
+server.port=8888
+spring.application.name=MyClient2
+
+Navigate to (run server, client and client2)
+localhost:8761
+localhost:8888/serviceinfo
+
+######################
+# CONSUMING A SERVICE
+
+"SpringMicroservicesEurekaClientApplication"
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+
+"application.properties"
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+
+"ExampleController"
+@RestController
+public class ExampleController {
+	
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@RequestMapping("execute")
+	public String execute() {
+		String url = "http://MYCLIENT2/serviceinfo";
+		Class<String> responseType = String.class;
+		
+		return this.restTemplate.getForObject(url, responseType);
+	}
+}
+
+Navigate to localhost:8080/execute (Client 1) 
+-> Invoke http://MYCLIENT2/serviceinfo (Client 2) 
+-> That gets from server the client 1 address
+
+##########
+# HYSTRIX
+spring-microservices-simple-service (web dependency)
+
+Add to SpringMicroservicesSimpleServiceApplication
+@RestController
+
+@RequestMapping("/service")
+public List<String> execute() {
+	return Arrays.asList("Value1", "Value2");
+}
+
+Add to application.properties
+server.port=8888
+
+spring-micorservice-hystrix (web, actuator, hystrix dependencies)
+
+Add to SpringMicorservicesHystrixApplication
+@RestController
+
+@Autowired
+private RestTemplate restTemplate;
+
+@Bean
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+ 
+@SuppressWarnings("unchecked")
+@RequestMapping("/startClient")
+public List<String> startClient() {
+	String url = "http://localhost:8888/service";
+	@SuppressWarnings("rawtypes")
+	Class<List> responseType = List.class;
+	
+	return this.restTemplate.getForObject(url, responseType);
+}
+
+Navigate to localhost:8080/startClient (Hystrix)
 
 
 
