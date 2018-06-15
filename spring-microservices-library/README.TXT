@@ -290,6 +290,49 @@ public List<String> startClient() {
 
 Navigate to localhost:8080/startClient (Hystrix)
 
+###########
+# FAILOVER
+Stop simple-service 
+add annotation @EnableCircuitBreaker to the class SpringMicorservicesHystrixApplication
+add annotation @HystrixCommand(fallbackMethod="failover") to the startClient method
+
+##################
+# FAILOVER PARAMS (timeout)
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping("/startClient")
+	@HystrixCommand(fallbackMethod="failover", commandProperties= {
+		@HystrixProperty(name="execution.isolation.thread.timeoutInMilliseconds", value="500")	
+	})
+//	public List<String> startClient() {
+	public List<String> startClient(@RequestParam long time) throws InterruptedException {
+		Thread.sleep(time);
+		
+		String url = "http://localhost:8888/service";
+		@SuppressWarnings("rawtypes")
+		Class<List> responseType = List.class;
+		
+		return this.restTemplate.getForObject(url, responseType);
+	}	
+	
+//	public List<String> failover() {
+	public List<String> failover(long time) {
+		return Arrays.asList("Default1", "Default2");
+	}
+	
+THREAD (default) / SEMAPHORE (not common)	
+ 
+Navigate to localhost:8080/startClient?time=300 -> jumps to service
+Navigate to localhost:8080/startClient?time=600 -> jumps to fail over
+
+From the pom dependencies add dependency spring-cloud-starter-hystrix-dashboard 
+	deprecated to spring-cloud-starter-netflix-hystrix-dashboard?
+Replace @EnableCircuitBreaker by @EnableHystrix and @EnableHystrixDashboard
+
+Navigate to localhost:8080/hystrix.stream
+Navigate to localhost:8080/startClient?time=100
+Navigate to localhost:8080/hystrix and inform localhost:8080/hystrix.stream and hit several times localhost:8080/startClient?time=100
+localhost:8080/startClient?time=1000 (circuit break)
 
 
 
