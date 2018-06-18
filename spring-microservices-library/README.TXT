@@ -6,7 +6,13 @@ https://www.safaribooksonline.com/library/view/building-microservices-with/97814
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296232.html
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296236.html
 https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296237.html
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296240
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296250
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296251
 https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files/Chapter%203/Microservice%20Demonstration/Library%20Start/src/main/java/com/oreilly/cloud
+https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files
+https://github.com/excelsiorsoft/building-microservices-with-spring-kevin-bowersox-course/tree/master/token-based-security-with-oauth
+https://github.com/excelsiorsoft/building-microservices-with-spring-kevin-bowersox-course
 
 ###########
 # NAVIGATE
@@ -333,6 +339,135 @@ Navigate to localhost:8080/hystrix.stream
 Navigate to localhost:8080/startClient?time=100
 Navigate to localhost:8080/hystrix and inform localhost:8080/hystrix.stream and hit several times localhost:8080/startClient?time=100
 localhost:8080/startClient?time=1000 (circuit break)
+
+#########
+# RIBBON
+
+spring-microservices-simple-service-2 with web dependency
+Set main class as @RestController
+
+@Value("{server.port}")
+public String port;
+
+@RequestMapping("/execute")
+public String execute() {
+	return "Hello from " + this.port;
+}
+
+@RequestMapping("/")
+public String status() {
+	return "Up";
+}
+
+Make 2 copies of the run configuration (3 services) and set -Dserver.port= 7777 8888 9999
+
+
+spring-microservices-ribbon web and ribbon dependency
+Set main class as @RestController and
+@RibbonClient(name="simple-service-2", configuration=SimpleServiceConfiguration.class)
+
+
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+
+@Autowired
+public RestTemplate restTemplate;
+
+@RequestMapping("/startClient")
+public String startClient() {
+	//return this.restTemplate.getForObject("http://localhost:7777/execute", String.class);
+	return this.restTemplate.getForObject("http://simple-service-2/execute", String.class);
+}
+
+Add a SimpleServiceConfiguration class
+
+@Autowired
+public IClientConfig ribbonClientConfig;
+
+@Bean
+public IPing ping(IClientConfig config) {
+	return new PingUrl();
+}
+
+@Bean
+public IRule rule(IClientConfig config) {
+	return new AvailabilityFilteringRule();
+}
+
+In application.properties
+simple-service-2.ribbon.eureka.enable=false
+simple-service-2.ribbon.ServerListRefreshInterval=15000
+simple-service-2.ribbon.listOfServers=localhost:7777,localhost:8888,localhost:9999
+
+Navigate localhost:7777/execute
+Navigate localhost:7777/
+Navigate localhost:8080/startClient
+
+#######
+# ZUUL
+
+spring-microservices-simple-service-3 with web dependency
+Set main class as @RestController
+
+@RequestMapping("/execute")
+public String execute() {
+	return "Executed...";
+}
+
+application.properties
+server.port=7777
+spring.application.name=simple-service-3
+
+spring-microservices-zuul web and zuul dependencies
+Add @EnableZuulProxy to main class
+
+application.properties
+ribbon.eureka=false
+server.port=8080
+zuul.routes.somePath.url=http://localhost:7777
+
+Navigate to localhost:8080/somePath/execute
+
+Then add zuul.routes.somePath.path=/otherPath/**
+Navigate to localhost:8080/otherPath/execute
+
+Then addd zuul.prefix=/apiV1
+Navigate to localhost:8080/apiV1/otherPath/execute
+
+###############
+# ZUUL FILTERS
+
+Implement a filter class
+
+MyZuulFilter extends ZuulFilter
+
+run() {
+	sysout("The request has passed the filter...");
+	return null;
+	
+shouldFilter() {
+	//RequestContext.--- accessing the request
+	return true;
+
+filterOrder() {
+	return 1;
+	
+filterType() {
+	return "pre";	
+
+Add to the main class
+@Bean
+public MyZuulFilter filter() {
+	return new MyZuulFilter();
+}
+
+########
+# OAUTH
+
+
 
 
 
