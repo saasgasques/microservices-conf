@@ -9,6 +9,11 @@ https://www.safaribooksonline.com/library/view/building-microservices-with/97814
 https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296240
 https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296250
 https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296251
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296252.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296253.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296254.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296259.html
+
 https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files/Chapter%203/Microservice%20Demonstration/Library%20Start/src/main/java/com/oreilly/cloud
 https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files
 https://github.com/excelsiorsoft/building-microservices-with-spring-kevin-bowersox-course/tree/master/token-based-security-with-oauth
@@ -467,10 +472,404 @@ public MyZuulFilter filter() {
 ########
 # OAUTH
 
+Install Postman
+
+spring-microservices-oauth-server cloud-oauth, spring-security, jdbc, hsql dependencies
+@EnableAuthorizationServer in main class
+
+"AuthorizationServerConfig"
+
+@Configuration
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+	
+	@Autowired
+	private AuthenticationManager authManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(authManager);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.inMemory()
+			.withClient("webapp").secret("websecret")
+			.authorizedGrantTypes("password").scopes("read,write,trust");
+	}		
+}
+
+"AuthorizationServerConfig"
+
+@Configuration
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+	
+	@Autowired
+	private AuthenticationManager authManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(authManager);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.inMemory()
+			.withClient("webapp").secret("websecret")
+			.authorizedGrantTypes("password").scopes("read,write,trust");
+	}		
+}
+
+"WebSecurityConfig"
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER");
+	}
+}
+
+"application.properties"
+
+server.port=9090
+
+Postman POST http://localhost:9090/oauth/token basic: webapp/websecret -> AUTHORIZATION 
+	Update request: grant_type, username, password SEND
+	http://localhost:9090/oauth/token?grant_type=password&username=user1&password=password1
+
+{
+    "access_token": "f34b715b-802b-49e7-917d-06aede431979",
+    "token_type": "bearer",
+    "expires_in": 42998,
+    "scope": "read,write,trust"
+}
+ 
+ 
+################################# 
+# OAUTH RESOURCE - AUTHORIZATION 
+
+@RestController
+@EnableResourceServer
+
+	@RequestMapping("/resource/endpoint")
+	public String endpoint() {
+		return "This message is protected by the resource server.";
+	}
+
+Do the Postman POST against the authorization server and get the access token	
+Do a Postman GET against http://localhost:9090/resource/endpoint -> NO AUTHENTICATION
+	passing the access token as parameter "access_token": "f34b715b-802b-49e7-917d-06aede431979"
+... jumps the basic authentication	
+
+Navigate to http://localhost:9090/resource/endpoint?access_token=f34b715b-802b-49e7-917d-06aede431979	
+and fill user1 and password1
+
+####################
+# OAUTH ROLE ACCESS
+
+Add annotations to the main class @EnableGlobalMethodSecurity(prePostEnabled=true)
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@RequestMapping("/resource/endpoint")
+	public String endpoint() {
+		return "This message is protected by the resource server.";
+	}
+
+"WebSecurityConfig"
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER")
+			.and()
+			.withUser("admin").password("password2").roles("ADMIN");
+	}
+
+I have to get a token passing admin/password2 and with the navigator I get the resource directly?
+
+###############
+# OAUTH CLIENT
+
+spring-microservices-oauth-client dependencies cloud oauth, core security, web
+
+Copy the "WebSecurityConfig", comment the method authenticationManagerBean
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+		.anyRequest().authenticated()
+		.and()
+		.formLogin()
+		.and()
+		.httpBasic();
+	}	
+	
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER")
+			.and()
+			.withUser("admin").password("password2").roles("ADMIN");
+		auth.eraseCredentials(false); // Allow the basic credentials to survive in the Principal
+	}	
+
+In the main class
+
+	@Autowired
+	private OAuth2RestTemplate restTemplate;
+	
+	@Bean
+	public OAuth2RestTemplate restTemplate() {
+		return new OAuth2RestTemplate(resource(), new DefaultOAuth2ClientContext());
+	}
+	
+	@Bean
+	protected OAuth2ProtectedResourceDetails resource() {
+		ResourceOwnerPasswordResourceDetails details = new ResourceOwnerPasswordResourceDetails();
+		details.setAccessTokenUri("http://localhost:9090/oauth/token");
+		details.setClientId("webapp");
+		details.setClientSecret("websecret");
+		details.setGrantType("password");
+		
+		return details;
+	}
+	
+	@RequestMapping("/execute")
+	public String execute(Principal principal) throws URISyntaxException {
+		User user = (User)((Authentication)principal).getPrincipal();
+		URI uri = new URI("http://localhost:9090/resource/endpoint");
+		RequestEntity<String> request = new RequestEntity<String>(HttpMethod.POST, uri);
+		
+		// Set basic user/password token
+		AccessTokenRequest accessTokenRequest = this.restTemplate.getOAuth2ClientContext().getAccessTokenRequest();
+		accessTokenRequest.set("username", user.getUsername());
+		accessTokenRequest.set("password", user.getPassword());
+		
+		return restTemplate.exchange(request, String.class).getBody();
+	}
+
+?????????????????????
+	
+Navigate to localhost:8080 inform admin/password2 then navigate to localhost:8080/execute	
+Does not work properly!!!
+I think that the csrl is from the client and the server refuses it.
+
+?????????????????????
+
+###############
+# OAUTH HSQLDB
+
+Download HyperSQL and extract.
+Create "server.properties" at the same lavel that "index.html" /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb
+
+server.database.0=file:hsqldb/oreilly
+server.dbname.0=testdb
+
+From command line build the configured database
+cd /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb
+java -classpath lib/hsqldb.jar org.hsqldb.server.Server
+$> CTLR+C
+
+From command line run the database
+java -classpath lib/hsqldb.jar org.hsqldb.server.Server --database.0 file:hsqldb/oreilly --dbname.0 testdb
+$> /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb/bin/runManagerSwing.bat
+java -classpath lib/hsqldb.jar org.hsqldb.util.DatabaseManagerSwing
+
+HSQL Database Engine Server 
+jdbc:hsqldb:hsql://localhost/testdb
+
+Create and "schema.sql" in the server project and copy the text from 
+	https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/test/resources/schema.sql
+add start
+	drop table oauth_client_details if exists;
+	drop table oauth_client_token if exists;
+	drop table oauth_access_token if exists;
+add end
+	insert into oauth_client_details(client_id, client_secret, scope, authorized_grant_types, 
+		web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, autoapprove)
+	values ('webapp', 'websecret', 'trust,read,write', 'password,authorization_code,refresh_token',
+		null, null, 36000, 36000, null, true);
+	insert into oauth_client_details(client_id, client_secret, scope, authorized_grant_types, 
+		web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, autoapprove)
+	values ('resource1', 'secret', 'trust,read,write', 'password,authorization_code,refresh_token',
+		null, null, 36000, 36000, null, true);
+		
+"AuthorizationServerConfig" replacing in memory by hsqldb
+
+	@Autowired
+	private AuthenticationManager authManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(authManager);
+	}
+
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+		security.checkTokenAccess("permitAll()");
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource());
+	}
+	
+	@Bean
+	public DataSource dataSource() {		
+		DriverManagerDataSource ds = new DriverManagerDataSource();
+		ds.setDriverClassName("org.hsqldb.jdbcDriver");
+		ds.setUrl("jdbc:hsqldb:hsql://localhost/testdb");
+		ds.setUsername("SA");
+		ds.setPassword("");
+		
+		return ds;
+	}
+	
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.jdbc(dataSource());
+	}
+
+SELECT * FROM OAUTH_ACCESS_TOKEN;
+SELECT * FROM OAUTH_CLIENT_DETAILS; (*)	
+SELECT * FROM OAUTH_CLIENT_TOKEN;	
+
+####################################
+# OAUTH STAND ALONE RESOURCE SERVER
+spring-microservices-oauth-resource dependencies cloud oauth, jdbc, hsqldb, core security, web
+
+"SpringMicroservicesOauthServerApplication"
+
+Disable //@EnableResourceServer and //@EnableGlobalMethodSecurity(prePostEnabled=true)
+and remove the endpoint from the authorization server
+
+//	@PreAuthorize("hasRole('ADMIN')")
+//	@RequestMapping("/resource/endpoint")
+//	public String endpoint() {
+//		return "This message is protected by the resource server.";
+//	}
+
+"SpringMicroservicesOauthResourceApplication"
+
+@EnableResourceServer
+@EnableGlobalMethodSecurity(prePostEnabled=true)
+@RestController
+@SpringBootApplication
+public class SpringMicroservicesOauthResourceApplication {
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@RequestMapping("/resource/endpoint")
+	public String endpoint(Principal principal) {
+		return "Welcome" + principal.getName() + ", This message is protected by the resource server.";
+	}
+	
+	@Bean
+	@Primary
+	public RemoteTokenServices tokenService() {
+		RemoteTokenServices srv = new RemoteTokenServices();
+		srv.setCheckTokenEndpointUrl("http://localhost:9090/oauth/check_token");
+		srv.setClientId("resource1");
+		srv.setClientSecret("secret");
+		
+		return srv;
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource());
+	}
+	
+	@Bean
+	public DataSource dataSource() {		
+		DriverManagerDataSource ds = new DriverManagerDataSource();
+		ds.setDriverClassName("org.hsqldb.jdbcDriver");
+		ds.setUrl("jdbc:hsqldb:hsql://localhost/testdb");
+		ds.setUsername("SA");
+		ds.setPassword("");
+		
+		return ds;
+	}
+	
+	public static void main(String[] args) {
+		SpringApplication.run(SpringMicroservicesOauthResourceApplication.class, args);
+	}
+}
+
+"application.properties"
+
+server.port=7070
+security.oauth2.resource.token-info-uri=http://localhost:9090/oauth/token
+		
+"SpringMicroservicesOauthClientApplication"
+
+Set the endpoint in the resource server
+URI uri = new URI("http://localhost:7070/resource/endpoint"); 
+
+Start authentication, resource and client.
+Navigate to localhost:8080/execute
+
+TODO: https://dzone.com/articles/secure-spring-rest-with-spring-security-and-oauth2
+
+#
+spring-microservices-library-catalog
+spring-microservices-library-reservation
+spring-microservices-library-ui
+
+localhost:8080/home.html (admin)
+
+Register books
+http://localhost:5000/reservation/user/admin/book/1
+http://localhost:5000/reservation/user/admin/book/2
+
+List books
+http://localhost:5000/reservation/user/admin
+
+#############
+# CLUSTERING
+sudo apt-get install apache2  
+sudo apt-get install libapache2-mod-jk 
 
 
+sudo systemctl restart apache2
+sudo systemctl stop apache2
+sudo systemctl start apache2
 
+/etc/apache2
+/etc/libapache2-mod-jk (workers.properties / httpd-jk.conf)
 
+"worker.properties"
+ worker.list=loadbalancer,status  
+ worker.server1.port=8009  
+ worker.server1.host=localhost  
+ worker.server1.type=ajp13  
+
+ worker.server2.port=9009  
+ worker.server2.host=localhost  
+ worker.server2.type=ajp13  
+
+ worker.server1.lbfactor=1  
+ worker.server2.lbfactor=1  
+
+ worker.loadbalancer.type=lb  
+ worker.loadbalancer.balance_workers=server1,server2 
+ 
+ worker.status.type=status 
+ 
+"httpd-jk.conf"
+JkMount /status status  
+JkMount /* loadbalancer 
+
+Virtual host JkMountCopy On
+
+"/etc/apache2/apache2.conf" add last line to enable propagation of the load balancing
+JkMountCopy All
 
 
 
