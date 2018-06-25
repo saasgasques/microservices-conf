@@ -1,0 +1,705 @@
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296221.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296222.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296226.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296228.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296231.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296232.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296236.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296237.html
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296240
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296250
+https://www.safaribooksonline.com/videos/building-microservices-with/9781491977101/9781491977101-video296251
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296252.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296253.html
+https://www.safaribooksonline.com/library/view/building-microservices-with/9781491977101/video296254.html
+
+https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files/Chapter%203/Microservice%20Demonstration/Library%20Start/src/main/java/com/oreilly/cloud
+https://resources.oreilly.com/examples/0636920061946/tree/master/Building%20Microservices%20with%20Spring%20-%20Working%20Files
+https://github.com/excelsiorsoft/building-microservices-with-spring-kevin-bowersox-course/tree/master/token-based-security-with-oauth
+https://github.com/excelsiorsoft/building-microservices-with-spring-kevin-bowersox-course
+
+###########
+# NAVIGATE
+$ curl http://localhost:8080/book.html
+$ curl http://localhost:8080/book/search/title?title=1984
+$ curl http://localhost:8080/book/2
+
+MONOLITH 
+spring-micorservices-library
+
+MICROSERVICES 
+spring-microservices-catalog
+Starter : jpa+h2+rest repositories
+
+Move Book, BookRepository and data.sql from "spring-microservices-library" to "spring-microservices-catalog"
+
+"catalog"."application.properties"
+server.port=9090
+
+$ curl http://localhost:9090/book/2
+
+################
+# COMMUNICATION
+Create a new class BookController in "library" to communicate to "catalog"
+
+#######################
+# CONFIGURATION SERVER
+"spring-microservices-config-server"
+Cloud Config:Config Server
+
+In github "microservices-conf" crete the file "config-client-development.properties"
+projetc "config-client" and profile "development"
+https://github.com/saasgasques/microservices-conf.git
+
+Edit "config-client-development.properties" and add a message=Hello World!
+
+Edit "application.properties" and set (it could be a C:\local\mmmm.git)
+	spring.cloud.config.server.git.uri=https://github.com/saasgasques/microservices-conf.git
+	server.port=8888
+	
+##############################	
+# ENABLE CONFIGURATION SERVER
+Add @EnableConfigServer annotation to the SpringMicroservicesConfigServerApplication
+
+$ curl http://localhost:8888/actuator/health
+$ curl http://localhost:8888/config-client-development.properties
+$ curl http://localhost:8888/config-client-development.json
+
+##############################
+# CREATE CONFIGURATION CLIENT
+"spring-microservices-config-client"
+Config Client + Web + Actuator
+
+Define port on the application.properties
+server.port=9999
+
+Add to "SpringMicroservicesConfigClientApplication" @RestController at command level and add an attribute
+
+@Value("${message}")
+private String message; 
+
+@RequestMapping("/message")
+public String message() {
+	return this.message;
+}
+
+Edit "bootstrap.properties" and define the profile
+spring.profiles.active=development
+spring.application.name=config-client
+spring.cloud.config.uri=http://localhost:8888
+
+$ curl http:/localhost:9999/message
+
+##############
+# ADD REFRESH
+Add @RefreshScope annotations to the "SpringMicroservicesConfigClientApplication" and hit the actuator refresh with a post.
+Expose the /refresh with the actuator in the appplication.properties
+management.endpoints.web.exposure.include=refresh
+
+$ curl http:/localhost:9999/message
+$ curl -X POST http://localhost:9999/actuator/refresh
+$ curl http:/localhost:9999/message
+
+#############
+# ENCRYPTION
+JCE java 8 unlimited strength
+$ locate jdk
+$ cd /usr/lib/jvm/java-8-oracle 
+$ cd /usr/lib/jvm/java-8-oracle/jre/lib/security
+Backup local-policy and export-policy and install new jars.
+
+/*
+$ java -version
+
+Java(TM) SE Runtime Environment (build 1.8.0_161-b12)
+
+$ cat java.security | grep crypto
+
+2.  If the "crypto.policy" property is not set and the traditional
+#     and the "crypto.policy" Security property is not defined,
+#     crypto.policy=unlimited)
+*/
+
+Set encryption on the server "application.properties" NOPE it must be placed in the "bootstrap.properties"
+encrypt.key=secret
+
+$ curl http://localhost:8888/encrypt -d Kevin
+aeea544db95558311246bb1c2dc8a9fe3e509510a039641b10f69c92d88a5994
+$ curl http://localhost:8888/decrypt --data-urlencode aeea544db95558311246bb1c2dc8a9fe3e509510a039641b10f69c92d88a5994
+Kevin
+
+Update "config-client-development.properties" in github and replace plain text
+#message=Hello World! Spring Works 7!
+message={cipher}aeea544db95558311246bb1c2dc8a9fe3e509510a039641b10f69c92d88a5994
+
+$ curl http:/localhost:9999/message 
+Kevin
+
+################################
+# Eureka, Hystrix, Ribbon, Zuul
+
+################
+# EUREKA SERVER
+spring-microservice-eureka-server
+Starter Eureka Server change to starter 1.5.13.RELEASE to avoid rxjava-1.3.8.jar error
+
+Add @EnableEurekaServer annotation to "SpringMicroserviceEurekaServerApplication"
+
+Add properties to "application.properties"
+server.port=8761
+eureka.client.register-with-eureka=false // do not allow a client to register
+eureka.client.fetch-registry=false // do not fetch other registries information
+
+Navigate to localhost:8761
+
+
+mvn dependency:tree
+mvn clean
+mvn package
+
+Archive for required library: '/home/ester/.m2/repository/io/reactivex/rxjava/1.3.8/rxjava-1.3.8.jar' 
+in project 'spring-microservice-eureka-server' cannot be read or is not a valid ZIP file	
+spring-microservice-eureka-server		Build path	Build Path Problem
+
+########################
+# EUREKA SERVER REPLICA
+
+Edit /etc/hosts and add
+127.0.0.1 peer1
+127.0.0.1 peer2
+
+Create application-peer1.properties, application-peer2.properties and remove application.properties
+
+#application-peer1.properties
+server.port=8761
+eureka.client.register-with-eureka=false 
+eureka.client.fetch-registry=false 
+eureka.instance.hostname=peer1
+eureka.client.serviceUrl.defaultZone=http://peer2:8762/eureka
+
+#application-peer2.properties
+server.port=8762
+eureka.client.register-with-eureka=false 
+eureka.client.fetch-registry=false 
+eureka.instance.hostname=peer2
+eureka.client.serviceUrl.defaultZone=http://peer1:8761/eureka
+
+Run de app "SpringMicroserviceEurekaServerApplication" and add VM Arguments -Dspring.profiles.active=peer1
+duplicate the profiles and modify -Dspring.profiles.active=peer2
+
+Navigate to localhost:8761 and localhost:8762
+
+################
+# EUREKA CLIENT
+spring-microservices-eureka-client
+Eureka Discovery dependency  1.5.13.RELEASE
+
+Add @EnableEurekaClient annotation to class SpringMicroservicesEurekaClientApplication
+Add app name to the application.properties
+spring.application.name=MyClient
+
+Navigate to localhost:8761
+
+##################
+# EUREKA CLIENT 2
+Create a second client spring-microservices-eureka-client2
+
+Add @RestController @EnableEurekaClient annotation to class SpringMicroservicesEurekaClient2Application
+Add a rest mapping to class SpringMicroservicesEurekaClient2Application
+
+@Autowired
+private EurekaClient client;
+
+@RequestMapping("/serviceinfo")
+public String serviceInfo() {
+	String virtualHostname = "MyClient"; // App client 1 name
+	Boolean secure = false; // Secure access
+	InstanceInfo instance = client.getNextServerFromEureka(virtualHostname, secure);
+	
+	return instance.getHomePageUrl();
+}
+
+Set port and app name in client2 application.properties
+server.port=8888
+spring.application.name=MyClient2
+
+Navigate to (run server, client and client2)
+localhost:8761
+localhost:8888/serviceinfo
+
+######################
+# CONSUMING A SERVICE
+
+"SpringMicroservicesEurekaClientApplication"
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+
+"application.properties"
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+
+"ExampleController"
+@RestController
+public class ExampleController {
+	
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@RequestMapping("execute")
+	public String execute() {
+		String url = "http://MYCLIENT2/serviceinfo";
+		Class<String> responseType = String.class;
+		
+		return this.restTemplate.getForObject(url, responseType);
+	}
+}
+
+Navigate to localhost:8080/execute (Client 1) 
+-> Invoke http://MYCLIENT2/serviceinfo (Client 2) 
+-> That gets from server the client 1 address
+
+##########
+# HYSTRIX
+spring-microservices-simple-service (web dependency)
+
+Add to SpringMicroservicesSimpleServiceApplication
+@RestController
+
+@RequestMapping("/service")
+public List<String> execute() {
+	return Arrays.asList("Value1", "Value2");
+}
+
+Add to application.properties
+server.port=8888
+
+spring-micorservice-hystrix (web, actuator, hystrix dependencies)
+
+Add to SpringMicorservicesHystrixApplication
+@RestController
+
+@Autowired
+private RestTemplate restTemplate;
+
+@Bean
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+ 
+@SuppressWarnings("unchecked")
+@RequestMapping("/startClient")
+public List<String> startClient() {
+	String url = "http://localhost:8888/service";
+	@SuppressWarnings("rawtypes")
+	Class<List> responseType = List.class;
+	
+	return this.restTemplate.getForObject(url, responseType);
+}
+
+Navigate to localhost:8080/startClient (Hystrix)
+
+###########
+# FAILOVER
+Stop simple-service 
+add annotation @EnableCircuitBreaker to the class SpringMicorservicesHystrixApplication
+add annotation @HystrixCommand(fallbackMethod="failover") to the startClient method
+
+##################
+# FAILOVER PARAMS (timeout)
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping("/startClient")
+	@HystrixCommand(fallbackMethod="failover", commandProperties= {
+		@HystrixProperty(name="execution.isolation.thread.timeoutInMilliseconds", value="500")	
+	})
+//	public List<String> startClient() {
+	public List<String> startClient(@RequestParam long time) throws InterruptedException {
+		Thread.sleep(time);
+		
+		String url = "http://localhost:8888/service";
+		@SuppressWarnings("rawtypes")
+		Class<List> responseType = List.class;
+		
+		return this.restTemplate.getForObject(url, responseType);
+	}	
+	
+//	public List<String> failover() {
+	public List<String> failover(long time) {
+		return Arrays.asList("Default1", "Default2");
+	}
+	
+THREAD (default) / SEMAPHORE (not common)	
+ 
+Navigate to localhost:8080/startClient?time=300 -> jumps to service
+Navigate to localhost:8080/startClient?time=600 -> jumps to fail over
+
+From the pom dependencies add dependency spring-cloud-starter-hystrix-dashboard 
+	deprecated to spring-cloud-starter-netflix-hystrix-dashboard?
+Replace @EnableCircuitBreaker by @EnableHystrix and @EnableHystrixDashboard
+
+Navigate to localhost:8080/hystrix.stream
+Navigate to localhost:8080/startClient?time=100
+Navigate to localhost:8080/hystrix and inform localhost:8080/hystrix.stream and hit several times localhost:8080/startClient?time=100
+localhost:8080/startClient?time=1000 (circuit break)
+
+#########
+# RIBBON
+
+spring-microservices-simple-service-2 with web dependency
+Set main class as @RestController
+
+@Value("{server.port}")
+public String port;
+
+@RequestMapping("/execute")
+public String execute() {
+	return "Hello from " + this.port;
+}
+
+@RequestMapping("/")
+public String status() {
+	return "Up";
+}
+
+Make 2 copies of the run configuration (3 services) and set -Dserver.port= 7777 8888 9999
+
+
+spring-microservices-ribbon web and ribbon dependency
+Set main class as @RestController and
+@RibbonClient(name="simple-service-2", configuration=SimpleServiceConfiguration.class)
+
+
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+
+@Autowired
+public RestTemplate restTemplate;
+
+@RequestMapping("/startClient")
+public String startClient() {
+	//return this.restTemplate.getForObject("http://localhost:7777/execute", String.class);
+	return this.restTemplate.getForObject("http://simple-service-2/execute", String.class);
+}
+
+Add a SimpleServiceConfiguration class
+
+@Autowired
+public IClientConfig ribbonClientConfig;
+
+@Bean
+public IPing ping(IClientConfig config) {
+	return new PingUrl();
+}
+
+@Bean
+public IRule rule(IClientConfig config) {
+	return new AvailabilityFilteringRule();
+}
+
+In application.properties
+simple-service-2.ribbon.eureka.enable=false
+simple-service-2.ribbon.ServerListRefreshInterval=15000
+simple-service-2.ribbon.listOfServers=localhost:7777,localhost:8888,localhost:9999
+
+Navigate localhost:7777/execute
+Navigate localhost:7777/
+Navigate localhost:8080/startClient
+
+#######
+# ZUUL
+
+spring-microservices-simple-service-3 with web dependency
+Set main class as @RestController
+
+@RequestMapping("/execute")
+public String execute() {
+	return "Executed...";
+}
+
+application.properties
+server.port=7777
+spring.application.name=simple-service-3
+
+spring-microservices-zuul web and zuul dependencies
+Add @EnableZuulProxy to main class
+
+application.properties
+ribbon.eureka=false
+server.port=8080
+zuul.routes.somePath.url=http://localhost:7777
+
+Navigate to localhost:8080/somePath/execute
+
+Then add zuul.routes.somePath.path=/otherPath/**
+Navigate to localhost:8080/otherPath/execute
+
+Then addd zuul.prefix=/apiV1
+Navigate to localhost:8080/apiV1/otherPath/execute
+
+###############
+# ZUUL FILTERS
+
+Implement a filter class
+
+MyZuulFilter extends ZuulFilter
+
+run() {
+	sysout("The request has passed the filter...");
+	return null;
+	
+shouldFilter() {
+	//RequestContext.--- accessing the request
+	return true;
+
+filterOrder() {
+	return 1;
+	
+filterType() {
+	return "pre";	
+
+Add to the main class
+@Bean
+public MyZuulFilter filter() {
+	return new MyZuulFilter();
+}
+
+########
+# OAUTH
+
+Install Postman
+
+spring-microservices-oauth-server cloud-oauth, spring-security, jdbc, hsql dependencies
+@EnableAuthorizationServer in main class
+
+"AuthorizationServerConfig"
+
+@Configuration
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+	
+	@Autowired
+	private AuthenticationManager authManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(authManager);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.inMemory()
+			.withClient("webapp").secret("websecret")
+			.authorizedGrantTypes("password").scopes("read,write,trust");
+	}		
+}
+
+"AuthorizationServerConfig"
+
+@Configuration
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+	
+	@Autowired
+	private AuthenticationManager authManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(authManager);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.inMemory()
+			.withClient("webapp").secret("websecret")
+			.authorizedGrantTypes("password").scopes("read,write,trust");
+	}		
+}
+
+"WebSecurityConfig"
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER");
+	}
+}
+
+"application.properties"
+
+server.port=9090
+
+Postman POST http://localhost:9090/oauth/token basic: webapp/websecret -> AUTHORIZATION 
+	Update request: grant_type, username, password SEND
+	http://localhost:9090/oauth/token?grant_type=password&username=user1&password=password1
+
+{
+    "access_token": "f34b715b-802b-49e7-917d-06aede431979",
+    "token_type": "bearer",
+    "expires_in": 42998,
+    "scope": "read,write,trust"
+}
+ 
+ 
+################################# 
+# OAUTH RESOURCE - AUTHORIZATION 
+
+@RestController
+@EnableResourceServer
+
+	@RequestMapping("/resource/endpoint")
+	public String endpoint() {
+		return "This message is protected by the resource server.";
+	}
+
+Do the Postman POST against the authorization server and get the access token	
+Do a Postman GET against http://localhost:9090/resource/endpoint -> NO AUTHENTICATION
+	passing the access token as parameter "access_token": "f34b715b-802b-49e7-917d-06aede431979"
+... jumps the basic authentication	
+
+Navigate to http://localhost:9090/resource/endpoint?access_token=f34b715b-802b-49e7-917d-06aede431979	
+and fill user1 and password1
+
+####################
+# OAUTH ROLE ACCESS
+
+Add annotations to the main class @EnableGlobalMethodSecurity(prePostEnabled=true)
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@RequestMapping("/resource/endpoint")
+	public String endpoint() {
+		return "This message is protected by the resource server.";
+	}
+
+"WebSecurityConfig"
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER")
+			.and()
+			.withUser("admin").password("password2").roles("ADMIN");
+	}
+
+I have to get a token passing admin/password2 and with the navigator I get the resource directly?
+
+###############
+# OAUTH CLIENT
+
+spring-microservices-oauth-client dependencies cloud oauth, core security, web
+
+Copy the "WebSecurityConfig", comment the method authenticationManagerBean
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+		.anyRequest().authenticated()
+		.and()
+		.formLogin()
+		.and()
+		.httpBasic();
+	}	
+	
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.inMemoryAuthentication()
+			.withUser("user1").password("password1").roles("USER")
+			.and()
+			.withUser("admin").password("password2").roles("ADMIN");
+		auth.eraseCredentials(false); // Allow the basic credentials to survive in the Principal
+	}	
+
+In the main class
+
+	@Autowired
+	private OAuth2RestTemplate restTemplate;
+	
+	@Bean
+	public OAuth2RestTemplate restTemplate() {
+		return new OAuth2RestTemplate(resource(), new DefaultOAuth2ClientContext());
+	}
+	
+	@Bean
+	protected OAuth2ProtectedResourceDetails resource() {
+		ResourceOwnerPasswordResourceDetails details = new ResourceOwnerPasswordResourceDetails();
+		details.setAccessTokenUri("http://localhost:9090/oauth/token");
+		details.setClientId("webapp");
+		details.setClientSecret("websecret");
+		details.setGrantType("password");
+		
+		return details;
+	}
+	
+	@RequestMapping("/execute")
+	public String execute(Principal principal) throws URISyntaxException {
+		User user = (User)((Authentication)principal).getPrincipal();
+		URI uri = new URI("http://localhost:9090/resource/endpoint");
+		RequestEntity<String> request = new RequestEntity<String>(HttpMethod.POST, uri);
+		
+		// Set basic user/password token
+		AccessTokenRequest accessTokenRequest = this.restTemplate.getOAuth2ClientContext().getAccessTokenRequest();
+		accessTokenRequest.set("username", user.getUsername());
+		accessTokenRequest.set("password", user.getPassword());
+		
+		return restTemplate.exchange(request, String.class).getBody();
+	}
+
+?????????????????????
+	
+Navigate to localhost:8080 inform admin/password2 then navigate to localhost:8080/execute	
+Does not work properly!!!
+I think that the csrl is from the client and the server refuses it.
+
+?????????????????????
+
+###############
+# OAUTH HSQLDB
+
+Download HyperSQL and extract.
+Create "server.properties" at the same lavel that "index.html" /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb
+
+server.database.0=file:hsqldb/oreilly
+server.dbname.0=testdb
+
+From command line build the configured database
+cd /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb
+java -classpath lib/hsqldb.jar org.hsqldb.server.Server
+$> CTLR+C
+
+From command line run the database
+java -classpath lib/hsqldb.jar org.hsqldb.server.Server --database.0 file:hsqldb/oreilly --dbname.0 testdb
+$> /home/ester/Downloads/HYPERSQL/hsqldb-2.4.1/hsqldb/bin/runManagerSwing.bat
+java -classpath lib/hsqldb.jar org.hsqldb.util.DatabaseManagerSwing
+
+HSQL Database Engine Server 
+jdbc:hsqldb:hsql://localhost/testdb
+
+Create and "schema.sql" in the server project and copy the text from 
+	https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/test/resources/schema.sql
+add
+	insert into oauth_client_details(client_id, client_secret, scope, authorized_grant_types, 
+		web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, autoapprove)
+	values ('webapp', 'websecret', 'trust,read,write', 'password,authorization_code,refresh_token',
+		null, null, 36000, 36000, null, true);
+	insert into oauth_client_details(client_id, client_secret, scope, authorized_grant_types, 
+		web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, autoapprove)
+	values ('resource1', 'secret', 'trust,read,write', 'password,authorization_code,refresh_token',
+		null, null, 36000, 36000, null, true);
+		
+"AuthorizationServerConfig"
+		
+
+
+
+
+

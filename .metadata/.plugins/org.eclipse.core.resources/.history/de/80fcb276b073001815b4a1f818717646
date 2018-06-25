@@ -1,0 +1,66 @@
+package com.example.spring.microservices;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.StreamUtils;
+
+public class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor {
+
+	@Override
+	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+			throws IOException {
+		traceRequest(request, body);
+        ClientHttpResponse response = execution.execute(request, body);
+        traceResponse(response);
+        return response;
+	}
+
+	private void traceRequest(HttpRequest request, byte[] body) {
+		debug("===========================request begin================================================");
+        debug("URI         : {}", request.getURI());
+        debug("Method      : {}", request.getMethod());
+        debug("Headers     : {}", request.getHeaders());
+        try {
+			debug("Request body: {}", new String(body, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+        debug("==========================request end================================================");
+	}
+	
+	private void traceResponse(ClientHttpResponse response) {
+		debug("============================response begin==========================================");
+        try {
+			debug("Status code  : {}", response.getStatusCode());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+        try {
+			debug("Status text  : {}", response.getStatusText());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+        debug("Headers      : {}", response.getHeaders());
+        try {
+			debug("Response body: {}", StreamUtils.copyToString(response.getBody(), Charset.defaultCharset()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        debug("=======================response end=================================================");
+	}
+	
+	private void debug(String trace) {
+		System.out.println(trace);
+	}
+	
+	private void debug(String trace, Object obj) {
+		System.out.println(trace+obj.toString());
+	}
+	
+}

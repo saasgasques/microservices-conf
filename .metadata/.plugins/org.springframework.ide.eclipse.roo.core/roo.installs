@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<installs>
+<install is-default="true">
+<home>/home/ester/Downloads/sts-bundle/spring-roo-2.0.0.RELEASE/</home>
+<name>LocalRoo2.0.0</name>
+</install>
+</installs>

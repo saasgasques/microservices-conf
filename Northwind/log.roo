@@ -1,0 +1,254 @@
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log opened at 2018-06-05 15:57:15
+project setup --topLevelPackage org.northwind --projectName "Northwind" --java 8 --multimodule STANDARD
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log closed at 2018-06-05 15:57:21
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log opened at 2018-06-05 15:57:31
+help
+settings add --name spring.roo.jpa.require.schema-object-name --value false --force
+jpa setup --provider HIBERNATE --database HYPERSONIC_PERSISTENT
+jpa setup --provider HIBERNATE --database H2_IN_MEMORY --profile dev
+module focus --moduleName model
+module focus --moduleName integration
+module focus --moduleName model
+help script
+// [failed] script -file enum.roo
+// [failed] script --file enum.roo
+// [failed] script --file ./enum.roo
+// [failed] script --file ../enum.roo
+enum type --class ~.Period
+enum constant --name QUARTERLY --class ~.Period
+enum constant --name ANNUAL --class ~.Period
+enum type --class ~.Status
+enum constant --name NEWLY --class ~.Status
+enum constant --name SEND_BILL --class ~.Status
+enum constant --name SENT --class ~.Status
+enum constant --name CLOSED --class ~.Status
+enum constant --name CANCELED --class ~.Status
+enum type --class ~.Trimester
+enum constant --name FIRST_TRIM --class ~.Trimester
+enum constant --name SECOND_TRIM --class ~.Trimester
+enum constant --name THIRD_TRIM --class ~.Trimester
+enum constant --name FOURTH_TRIM --class ~.Trimester
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/enum.roo
+// [failed] enum type --class ~.Period
+// [failed] script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/enum.roo
+entity jpa --class ~.City --readOnly
+entity jpa --class ~.Country --readOnly
+entity jpa --class ~.Region --readOnly
+entity jpa --class ~.Category
+entity jpa --class ~.OrderDetail
+entity jpa --class ~.Party
+entity jpa --class ~.PurchaseOrder
+entity jpa --class ~.Report
+entity jpa --class ~.Shipper
+entity jpa --class ~.SoldProduct
+entity jpa --class ~.Store
+entity jpa --class ~.Supplier
+entity jpa --class ~.Customer --extends ~.Party --force
+entity jpa --class ~.Employee --extends ~.Party --force
+entity jpa --class ~.Product --entityFormatExpression "#{name} #{code}"
+entity jpa --class ~.CustomerOrder --entityFormatMessage customerorder_format
+focus --class ~.Category
+field string --fieldName name
+field string --fieldName description
+field set --fieldName products --type ~.Product --mappedBy category
+focus --class ~.City
+field string --fieldName description
+field set --fieldName parties --type ~.Party --mappedBy city
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy city
+field set --fieldName stores --type ~.Store --mappedBy city
+field set --fieldName suppliers --type ~.Supplier --mappedBy city
+focus --class ~.Country
+field string --fieldName description
+field set --fieldName parties --type ~.Party --mappedBy country
+field set --fieldName regions --type ~.Region --mappedBy country
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy country
+field set --fieldName stores --type ~.Store --mappedBy country
+field set --fieldName suppliers --type ~.Supplier --mappedBy country
+focus --class ~.Customer
+field string --fieldName companyName
+field string --fieldName contactName
+field string --fieldName contactTitle
+field string --fieldName fax
+field string --fieldName email
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy customer
+focus --class ~.CustomerOrder
+field date --fieldName orderDate --type java.util.Calendar --column ORDER_DATE --persistenceType JPA_TIMESTAMP
+field date --fieldName requiredDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field date --fieldName shippedDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field number --fieldName freight --type java.math.BigDecimal
+field string --fieldName shipName
+field string --fieldName shipAddress
+field string --fieldName shipPostalCode
+field enum --fieldName status --type ~.Status --enumType STRING
+field string --fieldName shipPhone
+field date --fieldName invoiceDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field date --fieldName closeDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field set --fieldName orderDetails --type ~.OrderDetail --mappedBy customerOrder
+focus --class ~.Employee
+field string --fieldName firstName
+field string --fieldName lastName
+field string --fieldName title
+field date --fieldName birthDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field date --fieldName hireDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+field string --fieldName extension
+field string --fieldName photo
+field string --fieldName notes
+field set --fieldName purchaseOrders --type ~.PurchaseOrder --mappedBy employee
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy employee
+focus --class ~.OrderDetail
+field number --fieldName unitPrice --type java.math.BigDecimal
+field number --fieldName quantity --type java.lang.Integer
+field number --fieldName discount --type java.math.BigDecimal
+focus --class ~.Party
+field string --fieldName address
+field string --fieldName postalCode
+field string --fieldName phone
+focus --class ~.Product
+field string --fieldName name
+field string --fieldName code
+field string --fieldName quantityPerUnit
+field number --fieldName unitCost --type java.math.BigDecimal
+field number --fieldName unitPrice --type java.math.BigDecimal
+field number --fieldName unitsInStock --type java.lang.Integer
+field number --fieldName reorderLevel --type java.lang.Integer
+field other --fieldName discontinued --type java.lang.Boolean
+field set --fieldName purchaseOrders --type ~.PurchaseOrder --mappedBy product
+field set --fieldName orderDetails --type ~.OrderDetail --mappedBy product
+focus --class ~.PurchaseOrder
+field number --fieldName unitCost --type java.math.BigDecimal
+field number --fieldName quantity --type java.lang.Integer
+field date --fieldName orderDate --type java.util.Calendar --persistenceType JPA_TIMESTAMP
+focus --class ~.Region
+field string --fieldName description
+field set --fieldName cities --type ~.City --mappedBy region
+field set --fieldName parties --type ~.Party --mappedBy region
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy region
+field set --fieldName stores --type ~.Store --mappedBy region
+field set --fieldName suppliers --type ~.Supplier --mappedBy region
+focus --class ~.Report
+field string --fieldName type
+focus --class ~.Shipper
+field string --fieldName companyName
+field string --fieldName phone
+field set --fieldName customerOrders --type ~.CustomerOrder --mappedBy shipper
+focus --class ~.Store
+field string --fieldName name
+field string --fieldName address
+field string --fieldName postalCode
+field string --fieldName phone
+focus --class ~.Supplier
+field string --fieldName companyName
+field string --fieldName contactName
+field string --fieldName contactTitle
+field string --fieldName address
+field string --fieldName postalCode
+field string --fieldName phone
+field string --fieldName fax
+field string --fieldName web
+field set --fieldName products --type ~.Product --mappedBy supplier
+field set --fieldName stores --type ~.Store --cardinality MANY_TO_MANY
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/entity.roo
+dto --class ~.ShipperPhoneFormBean
+field string --fieldName phone
+dto --class ~.CustomerOrderFormBean --serializable
+field number --fieldName orderId --type java.lang.Long
+field number --fieldName employeeId --type java.lang.Long
+field number --fieldName customerId --type java.lang.Long
+field date --fieldName orderDate --type java.util.Calendar
+field string --fieldName employeeName
+field string --fieldName customerCompanyName
+field other --fieldName status --type ~.Status
+field date --fieldName shippedDate --type java.util.Calendar
+field number --fieldName freight --type java.math.BigDecimal
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/dto.roo
+dto --class ~.dto.ShipperPhoneFormBean
+field string --fieldName phone
+dto --class ~.dto.CustomerOrderFormBean --serializable
+field number --fieldName orderId --type java.lang.Long
+field number --fieldName employeeId --type java.lang.Long
+field number --fieldName customerId --type java.lang.Long
+field date --fieldName orderDate --type java.util.Calendar
+field string --fieldName employeeName
+field string --fieldName customerCompanyName
+field other --fieldName status --type ~.Status
+field date --fieldName shippedDate --type java.util.Calendar
+field number --fieldName freight --type java.math.BigDecimal
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/dto.roo
+entity projection --class model:~.CustomerInfo --entity model:~.Customer --fields id,companyName,email,fax --entityFormatExpression #{companyName}
+repository jpa --entity model:~.Customer --interface repository:~.CustomerRepository --defaultReturnType model:~.CustomerInfo
+repository jpa --all
+finder add --entity model:~.Shipper --name findByCompanyName
+finder add --entity model:~.Region --name findByCountryIdOrderByDescriptionAsc
+finder add --entity model:~.City --name findByRegionIdOrderByDescriptionAsc
+finder add --entity model:~.Product --name findByDiscontinuedOrderByNameAsc
+finder add --entity model:~.Shipper --name findByPhone --formBean model:~.ShipperPhoneFormBean
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/query.roo
+service --all
+web mvc setup
+web mvc view setup --type THYMELEAF
+web mvc templates setup --type THYMELEAF
+web mvc templates setup --type THYMELEAF
+web mvc controller --entity model:~.Category --responseType THYMELEAF
+web mvc controller --entity model:~.Country --responseType THYMELEAF
+web mvc controller --entity model:~.CustomerOrder --responseType THYMELEAF
+web mvc controller --entity model:~.Customer --responseType THYMELEAF
+web mvc controller --entity model:~.Employee --responseType THYMELEAF
+web mvc controller --entity model:~.Product --responseType THYMELEAF
+web mvc controller --entity model:~.Shipper --responseType THYMELEAF
+web mvc controller --entity model:~.SoldProduct --responseType THYMELEAF
+web mvc controller --entity model:~.Store --responseType THYMELEAF
+web mvc controller --entity model:~.Supplier --responseType THYMELEAF
+web mvc controller --entity model:~.City --responseType THYMELEAF
+web mvc controller --entity model:~.Region --responseType THYMELEAF
+web mvc controller --entity model:~.PurchaseOrder --responseType THYMELEAF
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/controller.roo
+web mvc detail --entity model:~.Category --field products --responseType THYMELEAF --views list,show
+web mvc detail --entity model:~.Product --field purchaseOrders --responseType THYMELEAF --views list,show
+web mvc detail --entity model:~.Country --responseType THYMELEAF --field regions --views list,show
+web mvc detail --entity model:~.Region --responseType THYMELEAF --field cities --views list,show
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/mvc.roo
+web mvc finder --all --responseType THYMELEAF
+web flow --flowName customerOrdersFlow --class ~.CustomerOrderFormBean
+web mvc controller --all --pathPrefix /api
+ws endpoint --service service-api:~.CategoryService --sei application:~.ws.api.CategoryWebService --class application:~.ws.endpoint.CategoryWebServiceEndpoint --config application:~.config.WsEndpointsConfiguration
+email sender setup --service service-impl:~.CustomerServiceImpl --username USERNAME --password PASSWORD --host HOST --port 1000 --protocol PROTOCOL --starttls true
+// [failed] email receiver setup --service service-impl:~.EmployeeServiceImpl --username USERNAME --password PASSWORD --host HOST --port 1000 --protocol PROTOCOL --starttls true
+security setup --provider SPRINGLETS_JPA
+security authorize --class service-api:~.CustomerService --method delete --roles ADMIN,EMPLOYEE
+jpa audit setup
+jpa audit add --entity model:~.Category
+test unit --class model:~.CustomerOrder
+test unit --class model:~.Category
+test unit --class model:~.Product
+test integration --class repository:~.CategoryRepository
+test integration --class repository:~.CityRepository
+test integration --class repository:~.CountryRepository
+test integration --class repository:~.CustomerOrderRepository
+test integration --class repository:~.CustomerRepository
+test integration --class repository:~.EmployeeRepository
+test integration --class repository:~.OrderDetailRepository
+test integration --class repository:~.PartyRepository
+test integration --class repository:~.ProductRepository
+test integration --class repository:~.PurchaseOrderRepository
+test integration --class repository:~.RegionRepository
+test integration --class repository:~.ReportRepository
+test integration --class repository:~.ShipperRepository
+test integration --class repository:~.SoldProductRepository
+test integration --class repository:~.StoreRepository
+test integration --class repository:~.SupplierRepository
+test integration --class application:~.web.CustomerOrdersCollectionThymeleafController
+test integration --class application:~.web.CountriesItemRegionsThymeleafController
+test integration --class application:~.web.CategoriesItemThymeleafController
+test integration --class application:~.web.PurchaseOrdersItemJsonController
+test integration --class application:~.web.OrderDetailsCollectionJsonController
+// script --file /home/ester/Documents/workspace-sts-3.9.4.RELEASE/Northwind/test.roo
+exit
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log closed at 2018-06-05 17:35:28
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log opened at 2018-06-05 17:46:40
+push-in --package model:org.northwind.model
+// [failed] push-in --all --force
+push-in --package service-api:org.northwind.service.api
+push-in --package application:org.northwind
+push-in --package application:org.northwind.application.config
+// [failed] push-in --all --force
+// Spring Roo 2.0.0.RELEASE [rev 4a2e9f1] log closed at 2018-06-05 18:26:09

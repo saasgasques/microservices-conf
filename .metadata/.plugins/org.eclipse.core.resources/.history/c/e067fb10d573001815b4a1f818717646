@@ -1,0 +1,16 @@
+package com.example.spring.microservices;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.web.bind.annotation.RestController;
+
+@EnableResourceServer
+@RestController
+@SpringBootApplication
+public class SpringMicroservicesOauthResourceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringMicroservicesOauthResourceApplication.class, args);
+	}
+}

@@ -1,0 +1,12 @@
+$(document).ready(function(){
+	var page = new Page();
+	page.init();
+});
+
+function Page() {
+	this.name = prompt("Please provide your name:");
+}
+
+Page.prototype.init = function() {
+	this.bind();
+}

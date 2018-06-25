@@ -1,0 +1,3 @@
+ribbon.eureka=false
+server.port=8080
+zuul.routes.somePath.url=http://localhost:7777

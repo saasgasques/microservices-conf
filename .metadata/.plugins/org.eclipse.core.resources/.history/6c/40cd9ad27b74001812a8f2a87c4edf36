@@ -1,0 +1,39 @@
+$(document).ready(function(){
+	var page = new Page();
+	page.init();
+});
+
+function Page() {
+	this.name = prompt("Please provide your name:");
+}
+
+Page.prototype.init = function() {
+	this.bind();
+}
+
+Page.prototype.bind = function() {
+	this.bindNavigation();
+}
+
+Page.prototype.bindNavigation = function() {
+	var that = this;
+	$("#my-reservations").click(function() {
+		$.post("http://localhost:5000/reservation/user/"+ that.name, function(data) {
+			var html = "<h4>Reservation</h4>";
+			html += "<table>";
+			html += "<tr>";
+			html += "<th>Reservation Id</th>";
+			html += "<th>Book Id</th>";
+			html += "<th>Date</th>";
+			html += "</tr>";
+			
+			for (var x=0; x<data.lenght; x++) {
+				html += "<tr>";
+				html += "<td>" + data[x].reservationId + "</td>";
+				html += "<td>" + data[x].bookId + "</td>";
+				html += "<td>" + data[x].date + "</td>";
+				html += "</tr>";
+			};
+		});
+	});
+}

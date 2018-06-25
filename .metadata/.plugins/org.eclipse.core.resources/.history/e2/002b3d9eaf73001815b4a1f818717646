@@ -1,0 +1,7 @@
+package com.example.spring.microservices;
+
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+
+public class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor {
+
+}

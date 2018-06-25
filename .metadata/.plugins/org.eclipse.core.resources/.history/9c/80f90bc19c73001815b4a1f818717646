@@ -1,0 +1,19 @@
+package com.example.spring.microservices;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.web.bind.annotation.RestController;
+
+@EnableOAuth2Client
+@RestController
+@SpringBootApplication
+public class SpringMicroservicesOauthClientApplication {
+
+	@Autowired
+	private OAuth2RestTemplate restTemplate;
+	
+	public static void main(String[] args) {
+		SpringApplication.run(SpringMicroservicesOauthClientApplication.class, args);
+	}
+}

@@ -1,0 +1,41 @@
+package com.example.spring.microservices;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+
+public class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor {
+
+	@Override
+	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+			throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void traceRequest(HttpRequest request, byte[] body) {
+		debug("===========================request begin================================================");
+        debug("URI         : {}", request.getURI());
+        debug("Method      : {}", request.getMethod());
+        debug("Headers     : {}", request.getHeaders());
+        try {
+			debug("Request body: {}", new String(body, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+        debug("==========================request end================================================");
+	}
+	
+	private void debug(String trace) {
+		System.out.println(trace);
+	}
+	
+	private void debug(String trace, Object obj) {
+		System.out.println(trace+obj.toString());
+	}
+	
+}

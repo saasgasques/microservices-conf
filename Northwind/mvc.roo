@@ -1,0 +1,4 @@
+web mvc detail --entity model:~.Category --field products --responseType THYMELEAF --views list,show
+web mvc detail --entity model:~.Product --field purchaseOrders --responseType THYMELEAF --views list,show
+web mvc detail --entity model:~.Country --responseType THYMELEAF --field regions --views list,show
+web mvc detail --entity model:~.Region --responseType THYMELEAF --field cities --views list,show

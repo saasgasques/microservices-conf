@@ -1,0 +1,5 @@
+finder add --entity model:~.Shipper --name findByCompanyName
+finder add --entity model:~.Region --name findByCountryIdOrderByDescriptionAsc
+finder add --entity model:~.City --name findByRegionIdOrderByDescriptionAsc
+finder add --entity model:~.Product --name findByDiscontinuedOrderByNameAsc
+finder add --entity model:~.Shipper --name findByPhone --formBean model:~.ShipperPhoneFormBean

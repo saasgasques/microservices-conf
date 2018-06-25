@@ -1,0 +1,20 @@
+$(document).ready(function(){
+	var page = new Page();
+	page.init();
+});
+
+function Page() {
+	this.name = prompt("Please provide your name:");
+}
+
+Page.prototype.init = function() {
+	this.bind();
+}
+
+Page.prototype.bind = function() {
+	this.bindNavigation();
+}
+
+Page.prototype.bindNavigation = function() {
+	var that = this;
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aop-reference-model>
+<aop-project name="spring-h2-marc"/>
+<aop-project name="spring-microservices-library-reservation"/>
+<aop-project name="spring-microservices-library-ui"/>
+<aop-project name="spring-microservices-catalog"/>
+<aop-project name="spring-microservices-simple-service-3"/>
+<aop-project name="spring-microservices-oauth-client"/>
+<aop-project name="spring-microservices-zuul"/>
+<aop-project name="spring-microservices-ribbon"/>
+<aop-project name="spring-microservices"/>
+<aop-project name="spring-microservices-config-server"/>
+<aop-project name="spring-microservices-library-catalog"/>
+<aop-project name="spring-microservices-eureka-client2"/>
+<aop-project name="spring-microservices-library"/>
+<aop-project name="spring-microservices-oauth-resource"/>
+<aop-project name="spring-microservices-mvc"/>
+<aop-project name="spring-micorservice-hystrix">
+<aspect-definition advice-class-name="com.netflix.hystrix.contrib.javanica.aop.aspectj.HystrixCommandAspect" advice-method-name="methodsAnnotatedWithHystrixCommand(org.aspectj.lang.ProceedingJoinPoint)" advice-type="AROUND" aspect-end-line-number="-1" aspect-name="hystrixCommandAspect" aspect-start-line-number="-1" factory-id="org.springframework.ide.eclipse.aop.core.annotationAspectDefinitionElementFactory" file="/spring-micorservice-hystrix/src/main/java/com/example/spring/microservices/SpringMicorserviceHystrixApplication.java" pointcut-expression="hystrixCommandAnnotationPointcut() || hystrixCollapserAnnotationPointcut()" proxy-target-class="false">
+<aop-reference advice-type="AROUND" bean="1:BeansModel|2:spring-micorservice-hystrix|3:java:com.example.spring.microservices.SpringMicorserviceHystrixApplication|8:springMicorserviceHystrixApplication:25" bean-file="/spring-micorservice-hystrix/src/main/java/com/example/spring/microservices/SpringMicorserviceHystrixApplication.java" bean-start-line="25" factory-id="org.springframework.ide.eclipse.aop.core.aopReferenceElementFactory" file="/spring-micorservice-hystrix/src/main/java/com/example/spring/microservices/SpringMicorserviceHystrixApplication.java" source="=spring-micorservice-hystrix/\/home\/ester\/.m2\/repository\/com\/netflix\/hystrix\/hystrix-javanica\/1.5.12\/hystrix-javanica-1.5.12.jar&lt;com.netflix.hystrix.contrib.javanica.aop.aspectj(HystrixCommandAspect.class[HystrixCommandAspect~methodsAnnotatedWithHystrixCommand~Lorg.aspectj.lang.ProceedingJoinPoint;" source-start-line="-1" target="=spring-micorservice-hystrix/src\/main\/java&lt;com.example.spring.microservices{SpringMicorserviceHystrixApplication.java[SpringMicorserviceHystrixApplication~startClient~J" target-start-line="41"/>
+</aspect-definition>
+</aop-project>
+<aop-project name="spring-microservices-simple-service-2"/>
+<aop-project name="spring-microservices-config-client"/>
+<aop-project name="spring-microservice-eureka-server"/>
+<aop-project name="spring-microservices-eureka-client"/>
+<aop-project name="spring-microservices-simple-service"/>
+<aop-project name="spring-microservices-oauth-server"/>
+</aop-reference-model>

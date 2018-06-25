@@ -1,0 +1,16 @@
+enum type --class ~.Period
+enum constant --name QUARTERLY --class ~.Period
+enum constant --name ANNUAL --class ~.Period
+
+enum type --class ~.Status
+enum constant --name NEWLY --class ~.Status
+enum constant --name SEND_BILL --class ~.Status
+enum constant --name SENT --class ~.Status
+enum constant --name CLOSED --class ~.Status
+enum constant --name CANCELED --class ~.Status
+
+enum type --class ~.Trimester
+enum constant --name FIRST_TRIM --class ~.Trimester
+enum constant --name SECOND_TRIM --class ~.Trimester
+enum constant --name THIRD_TRIM --class ~.Trimester
+enum constant --name FOURTH_TRIM --class ~.Trimester

@@ -1,0 +1,36 @@
+package com.example.spring.microservices;
+
+import java.io.IOException;
+
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+
+public class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor {
+
+	@Override
+	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+			throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void traceRequest(HttpRequest request, byte[] body) {
+		debug("===========================request begin================================================");
+        debug("URI         : {}", request.getURI());
+        debug("Method      : {}", request.getMethod());
+        debug("Headers     : {}", request.getHeaders());
+        debug("Request body: {}", new String(body, "UTF-8"));
+        debug("==========================request end================================================");
+	}
+	
+	private void debug(String trace) {
+		System.out.println(trace);
+	}
+	
+	private void debug(String label, String trace) {
+		System.out.println(label+trace);
+	}
+	
+}

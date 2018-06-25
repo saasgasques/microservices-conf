@@ -1,0 +1,13 @@
+dto --class ~.dto.ShipperPhoneFormBean
+field string --fieldName phone
+
+dto --class ~.dto.CustomerOrderFormBean --serializable
+field number --fieldName orderId --type java.lang.Long
+field number --fieldName employeeId --type java.lang.Long
+field number --fieldName customerId --type java.lang.Long
+field date --fieldName orderDate --type java.util.Calendar
+field string --fieldName employeeName
+field string --fieldName customerCompanyName
+field other --fieldName status --type ~.Status
+field date --fieldName shippedDate --type java.util.Calendar
+field number --fieldName freight --type java.math.BigDecimal
